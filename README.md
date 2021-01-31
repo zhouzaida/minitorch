@@ -2,6 +2,8 @@
 
 Implement a minimal neural network libary from scratch.
 
+# TODO
+
 # Requirements
 
 1. create virtual environment
@@ -14,7 +16,7 @@ Implement a minimal neural network libary from scratch.
     source minitorch-env/bin/activate
     ```
 
-3. intall dependences
+3. intall dependencies
     ```bash
     pip install -r requirements.txt
     ```
@@ -33,7 +35,7 @@ Implement a minimal neural network libary from scratch.
     python setup.py develop
     ```
 
-# Example
+# Examples
 
 + create Tensor
 
@@ -60,6 +62,7 @@ Implement a minimal neural network libary from scratch.
     print(f"t2 grad: {t2.grad}")  # t2 grad: None
     ```
 
-# Reference
+# References
 + [PyTorch](https://github.com/pytorch/pytorch)
 + [mypy is a static type checker for Python](https://mypy.readthedocs.io/)
++ [autograd](https://github.com/joelgrus/autograd)

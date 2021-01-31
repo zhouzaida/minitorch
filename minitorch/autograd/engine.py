@@ -4,7 +4,6 @@ Topological Sorting
 """
 
 from collections import defaultdict, deque
-from queue import PriorityQueue
 
 from minitorch import Tensor
 from .node import Node

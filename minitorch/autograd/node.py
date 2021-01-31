@@ -1,11 +1,11 @@
 from abc import ABCMeta, abstractmethod
 from typing import List
 
+import numpy as np
+
 from minitorch import Tensor
 from .edge import Edge
 
-
-sequence_nr = float('INF')
 
 def collect_next_edges(*tensors):
     next_edges = []
@@ -22,16 +22,8 @@ def collect_next_edges(*tensors):
 
 class Node(metaclass=ABCMeta):
 
-    def __init__(self):
-        global sequence_nr
-        self.sequence_nr = sequence_nr
-        sequence_nr -= 1
-
     def __call__(self, *grad_outputs):
         return self.apply(*grad_outputs)
-
-    # def __lt__(self, other):
-    #     return self.sequence_nr < other.sequence_nr
 
     def set_next_edges(self, next_edges: List[Edge] = None):
         self.next_edges = next_edges
@@ -44,7 +36,6 @@ class Node(metaclass=ABCMeta):
 class AccumulateGrad(Node):
 
     def __init__(self, leaf_tensor: Tensor):
-        super().__init__()
         self.leaf_tensor = leaf_tensor
 
     def apply(self, *grad_outputs):
@@ -56,20 +47,77 @@ class AccumulateGrad(Node):
         return None
 
 
+############## unary operator ##################
+
+class NegBackward(Node):
+
+    def apply(self, *grad_outputs):
+        grad, = grad_outputs
+        return -grad,
+
+
+class SumBackward(Node):
+
+    def __init__(self):
+        self.shape = None
+    
+    def apply(self, *grad_outputs):
+        grad, = grad_outputs
+        return grad * Tensor(np.ones(self.shape)),
+
+
+############## binary operator ##################
+
 class AddBackward(Node):
 
     def apply(self, *grad_outputs):
         grad, = grad_outputs
-        return grad, grad
+        if len(self.next_edges) == 1:
+            return grad,
+        else:
+            return grad, grad
+
+
+class SubBackward(Node):
+
+    def __init__(self):
+        self.sign = 1
+
+    def apply(self, *grad_outputs):
+        grad, = grad_outputs
+        if len(self.next_edges) == 1:
+            return self.sign * grad,
+        else:
+            return grad, -grad
 
 
 class MulBackward(Node):
 
-    def __init__(self, t1: Tensor = None, t2: Tensor = None):
-        super().__init__()
-        self.t1 = Tensor(t1.data)
-        self.t2 = Tensor(t2.data)
+    def __init__(self):
+        self.t1 = None
+        self.t2 = None
 
     def apply(self, *grad_outputs):
         grad, = grad_outputs
-        return self.t2 * grad, self.t1 * grad
+        output = []
+        if self.t2 is not None:
+            output.append(self.t2 * grad)
+        if self.t1 is not None:
+            output.append(self.t1 * grad)
+        return output
+
+
+class MatmulBackward(Node):
+
+    def __init__(self):
+        self.t1 = None
+        self.t2 = None
+
+    def apply(self, *grad_outputs):
+        grad, = grad_outputs
+        output = []
+        if self.t2 is not None:
+            output.append(grad @ self.t2)
+        if self.t1 is not None:
+            output.append(self.t1 @ grad)
+        return output
