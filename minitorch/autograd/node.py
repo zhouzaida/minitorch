@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from typing import List
 
 import numpy as np
+from typing import List
 
 from minitorch import Tensor
 from .edge import Edge

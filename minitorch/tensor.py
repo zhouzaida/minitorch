@@ -1,5 +1,7 @@
-from typing import Union, List
 import numpy as np
+from typing import Union, List
+
+from minitorch import autograd
 
 
 def ensure_ndarray(data):
@@ -34,50 +36,39 @@ class Tensor:
         return f"Tensor({self.data}, requires_grad={self.requires_grad})"
 
     def __add__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import add
-        return add(self, ensure_tensor(other))
+        return autograd.functional.add(self, ensure_tensor(other))
 
     def __radd__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import add
-        return add(ensure_tensor(other), self)
+        return autograd.functional.add(ensure_tensor(other), self)
 
     def __iadd__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import add
         self.data += ensure_tensor(other).data
         return self
 
     def __neg__(self) -> 'Tensor':
-        from minitorch.autograd.functional import neg
-        return neg(self)
+        return autograd.functional.neg(self)
 
     def __sub__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import sub
-        return sub(self, ensure_tensor(other))
+        return autograd.functional.sub(self, ensure_tensor(other))
 
     def __rsub__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import sub
-        return sub(ensure_tensor(other), self)
+        return autograd.functional.sub(ensure_tensor(other), self)
 
     def __isub__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import sub
         self.data -= ensure_tensor(other).data
         return self
 
     def __mul__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import mul
-        return mul(self, ensure_tensor(other))
+        return autograd.functional.mul(self, ensure_tensor(other))
 
     def __rmul__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import mul
-        return mul(ensure_tensor(other), self)
+        return autograd.functional.mul(ensure_tensor(other), self)
 
     def __matmul__(self, other) -> 'Tensor':
-        from minitorch.autograd.functional import matmul
-        return matmul(self, other)
+        return autograd.functional.matmul(self, other)
 
     def sum(self) -> 'Tensor':
-        from minitorch.autograd.functional import sum
-        return sum(self)
+        return autograd.functional.sum(self)
 
     def backward(self, grad: 'Tensor' = None):
         assert self.requires_grad
@@ -87,3 +78,6 @@ class Tensor:
         from minitorch.autograd.engine import Engine
         engine = Engine()
         engine.execute(self, grad)
+
+    def zero_grad(self):
+        self.grad = None
