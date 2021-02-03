@@ -100,6 +100,12 @@ class NegBackward(Node):
     def apply(self, grad_output: Tensor) -> list:
         return -grad_output,
 
+
+class TBackward(Node):
+
+    def apply(self, grad_output: Tensor) -> list:
+        return Tensor(data=grad_output.data.T)
+
 ############## binary operator ##################
 
 class AddBackward(Node):

@@ -35,6 +35,20 @@ def neg(t: Tensor) -> Tensor:
     else:
         return Tensor(data=data)
 
+
+def t(t: Tensor) -> Tensor:
+    # transpose
+    data = t.data.T
+    requires_grad = t.requires_grad
+    if requires_grad:
+        t_bw = TBackward()
+        t_bw.set_next_edges(collect_next_edges(t))
+        return Tensor(data=data,
+                      requires_grad=True,
+                      grad_fn=t_bw)
+    else:
+        return Tensor(data=data)
+
 ############## binary operator ##################
 def add(t1: Tensor, t2: Tensor) -> Tensor:
     data = t1.data + t2.data

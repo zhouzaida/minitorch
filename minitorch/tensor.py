@@ -73,6 +73,9 @@ class Tensor:
     def sum(self,  axis: Union[int, Tuple[int]] = None) -> 'Tensor':
         return autograd.functional.sum(self, axis)
 
+    def t(self) -> 'Tensor':
+        return autograd.functional.t(self)
+
     def backward(self, grad: 'Tensor' = None) -> None:
         assert self.requires_grad
         if grad is None and self.shape != ():

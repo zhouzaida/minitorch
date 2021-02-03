@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-from typing import Union
+from typing import Iterator, Union
 
 from ..parameter import Parameter
 from minitorch import Tensor
@@ -21,16 +21,19 @@ class Module(metaclass=ABCMeta):
         self._modules = OrderedDict()
 
     def __call__(self, *inputs):
-        self.forward(*inputs)
+        return self.forward(*inputs)
 
     @abstractmethod
     def forward(self, *inputs):
+        """subclass must implement the method."""
 
     def __getattr__(self, name: str) -> Union[Tensor, 'Module']:
-        if name in self._parameters:
-            return self._parameters[name]
-        elif name in self._modules:
-            return self._modules[name]
+        _parameters = self.__dict__['_parameters']
+        if name in _parameters:
+            return _parameters[name]
+        _modules = self.__dict__['_modules']
+        if name in _modules:
+            return _modules[name]
         raise AttributeError("'{}' object has no attribute '{}'".format(
             type(self).__name__, name))
 
@@ -40,9 +43,19 @@ class Module(metaclass=ABCMeta):
         elif isinstance(value, Module):
             self._modules[name] = value
         else:
-            raise TypeError(f"value should be type of Tensor or Module, but get {type(value).__name__}.")
+            object.__setattr__(self, name, value)
 
-    def zero_grad(self):
+    def parameters(self):
+        ...
+
+    def named_modules(self, prefix: str = '') -> Iterator['Module']:
+        yield prefix, self
+        for name, module in self._modules.items():
+            submodule_prefix = prefix + ('.' if prefix else '') + name
+            for m in module.named_modules(submodule_prefix):
+                yield m
+
+    def zero_grad(self) -> None:
         for value in self._modules.values():
             value.zero_grad()
         for value in self._parameters.values():
