@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 from minitorch import Tensor
 from .edge import Edge
@@ -18,6 +18,35 @@ def collect_next_edges(*tensors):
         else:
             next_edges.append(Edge(t.grad_fn))
     return next_edges
+
+
+def unbroadcast(grad_input: Tensor, input_shape: tuple) -> Tensor:
+    """When broadcast is applied to an operation, unbroadcast should also
+       be executed when backpropagating.
+
+    references:
+        + https://numpy.org/doc/stable/user/basics.broadcasting.html
+        + http://coldattic.info/post/116/
+        + https://github.com/joelgrus/autograd/blob/part06/autograd/tensor.py#L150
+
+    Args:
+        grad_input (Tensor): The gradient of input.
+        input_shape (tuple): The shape of input.
+
+    Returns:
+        Tensor: grad_input or new grad tensor.
+    """
+    if grad_input.shape == input_shape:
+        return grad_input
+    data = grad_input.data
+    ndims_added = len(grad_input.shape) - len(input_shape)
+    for _ in range(ndims_added):
+        data = data.sum(axis=0)
+    for i, dim in enumerate(input_shape):
+        if dim == 1:
+            data = data.sum(axis=i, keepdims=True)
+    
+    return Tensor(data=data)
 
 
 class Node(metaclass=ABCMeta):
@@ -38,86 +67,98 @@ class AccumulateGrad(Node):
     def __init__(self, leaf_tensor: Tensor):
         self.leaf_tensor = leaf_tensor
 
-    def apply(self, *grad_outputs):
-        grad, = grad_outputs
+    def apply(self, grad_output: Tensor):
         if self.leaf_tensor.grad is None:
-            self.leaf_tensor.grad = grad
+            self.leaf_tensor.grad = grad_output
         else:
-            self.leaf_tensor.grad += grad
+            self.leaf_tensor.grad += grad_output
         return None
 
+
+############## reduce operator ##################
+
+class SumBackward(Node):
+
+    def __init__(self):
+        self.axis = None
+        self.shape = None
+    
+    def apply(self, grad_output: Tensor) -> tuple:
+        if isinstance(self.axis, int):
+            self.axis = [self.axis]
+        if self.axis is None:
+            shape = [1] * len(self.shape)
+        else:
+            shape = [1 if i in self.axis else self.shape[i] for i in range(len(self.shape))]
+        data = grad_output.data.reshape(shape) + np.zeros(self.shape)
+        return Tensor(data=data),
 
 ############## unary operator ##################
 
 class NegBackward(Node):
 
-    def apply(self, *grad_outputs):
-        grad, = grad_outputs
-        return -grad,
-
-
-class SumBackward(Node):
-
-    def __init__(self):
-        self.shape = None
-    
-    def apply(self, *grad_outputs):
-        grad, = grad_outputs
-        return grad * Tensor(np.ones(self.shape)),
-
+    def apply(self, grad_output: Tensor) -> list:
+        return -grad_output,
 
 ############## binary operator ##################
 
 class AddBackward(Node):
 
-    def apply(self, *grad_outputs):
-        grad, = grad_outputs
-        if len(self.next_edges) == 1:
-            return grad,
-        else:
-            return grad, grad
+    def __init__(self):
+        self.t1_shape = None
+        self.t2_shape = None
+
+    def apply(self, grad_output: Tensor) -> list:
+        grad_input = []
+        if self.t1_shape is not None:
+            grad_input.append(unbroadcast(grad_output, self.t1_shape))
+        if self.t2_shape is not None:
+            grad_input.append(unbroadcast(grad_output, self.t2_shape))
+        return grad_input
 
 
 class SubBackward(Node):
 
     def __init__(self):
-        self.sign = 1
+        self.t1_shape = None
+        self.t2_shape = None
 
-    def apply(self, *grad_outputs):
-        grad, = grad_outputs
-        if len(self.next_edges) == 1:
-            return self.sign * grad,
-        else:
-            return grad, -grad
+    def apply(self, grad_output: Tensor) -> list:
+        grad_input = []
+        if self.t1_shape is not None:
+            grad_input.append(unbroadcast(grad_output, self.t1_shape))
+        if self.t2_shape is not None:
+            grad_input.append(unbroadcast(-grad_output, self.t2_shape))
+        return grad_input
 
 
 class MulBackward(Node):
 
     def __init__(self):
         self.t1 = None
+        self.t1_shape = None
         self.t2 = None
+        self.t2_shape = None
 
-    def apply(self, *grad_outputs):
-        grad, = grad_outputs
-        output = []
+    def apply(self, grad_output: Tensor) -> list:
+        grad_input = []
         if self.t2 is not None:
-            output.append(self.t2 * grad)
+            grad_input.append(unbroadcast(self.t2 * grad_output, self.t1_shape))
         if self.t1 is not None:
-            output.append(self.t1 * grad)
-        return output
+            grad_input.append(unbroadcast(self.t1 * grad_output, self.t2_shape))
+        return grad_input
 
 
-class MatmulBackward(Node):
+class MatMulBackward(Node):
 
     def __init__(self):
         self.t1 = None
         self.t2 = None
 
-    def apply(self, *grad_outputs):
-        grad, = grad_outputs
-        output = []
+    def apply(self, grad_output: Tensor) -> list:
+        grad_input = []
         if self.t2 is not None:
-            output.append(grad @ self.t2)
+            grad_input.append(grad_output @ Tensor(self.t2.data.T))
         if self.t1 is not None:
-            output.append(self.t1 @ grad)
-        return output
+            grad_input.append(Tensor(self.t1.data.T) @ grad_output)
+        return grad_input

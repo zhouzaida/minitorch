@@ -5,7 +5,7 @@ from minitorch import Tensor
 
 class TestAdd(TestCase):
     
-    def test_add(self):
+    def test_simple_add(self):
         # scalar add
         t1 = Tensor(1.0)
         t2 = Tensor(2.0)
@@ -55,3 +55,44 @@ class TestAdd(TestCase):
         t3.backward(Tensor([1.0, 1.0]))
         self.assertEqual(t1.grad.data.tolist(), [1.0, 1.0])
         self.assertEqual(t2.grad.data.tolist(), [1.0, 1.0])
+
+    def test_broadcast_add(self):
+        # (2,) + ()
+        t1 = Tensor([1.0, 2.0], requires_grad=True)
+        t2 = Tensor(2.0, requires_grad=True)
+        t3 = t1 + t2
+        t3.backward(Tensor([1.0, 1.0]))
+        self.assertEqual(t1.grad.data.tolist(), [1.0, 1.0])
+        self.assertEqual(t2.grad.data.tolist(), 2.0)
+
+        # (2,) + (1,)
+        t1 = Tensor([1.0, 2.0], requires_grad=True)
+        t2 = Tensor([2.0], requires_grad=True)
+        t3 = t1 + t2
+        t3.backward(Tensor([1.0, 1.0]))
+        self.assertEqual(t1.grad.data.tolist(), [1.0, 1.0])
+        self.assertEqual(t2.grad.data.tolist(), [2.0])
+
+        # (2, 2) + ()
+        t1 = Tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
+        t2 = Tensor(2.0, requires_grad=True)
+        t3 = t1 + t2
+        t3.backward(Tensor([[1.0, 1.0], [1.0, 1.0]]))
+        self.assertEqual(t1.grad.data.tolist(), [[1.0, 1.0], [1.0, 1.0]])
+        self.assertEqual(t2.grad.data.tolist(), 4.0)
+
+        # (2, 2) + (1,)
+        t1 = Tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
+        t2 = Tensor([2.0], requires_grad=True)
+        t3 = t1 + t2
+        t3.backward(Tensor([[1.0, 1.0], [1.0, 1.0]]))
+        self.assertEqual(t1.grad.data.tolist(), [[1.0, 1.0], [1.0, 1.0]])
+        self.assertEqual(t2.grad.data.tolist(), [4.0])
+
+        # (2, 2) + (2, )
+        t1 = Tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
+        t2 = Tensor([2.0, 3.0], requires_grad=True)
+        t3 = t1 + t2
+        t3.backward(Tensor([[1.0, 1.0], [1.0, 1.0]]))
+        self.assertEqual(t1.grad.data.tolist(), [[1.0, 1.0], [1.0, 1.0]])
+        self.assertEqual(t2.grad.data.tolist(), [2.0, 2.0])

@@ -1,2 +1,2 @@
-from .tensor import Tensor
+from .tensor import Tensor, rand
 from .autograd.functional import *

@@ -1,10 +1,13 @@
 import numpy as np
-from typing import Union, List
+from typing import List, Union, Tuple
 
 from minitorch import autograd
 
 
-def ensure_ndarray(data):
+Arrayable = Union[float, list, np.ndarray]
+
+
+def ensure_ndarray(data: Arrayable) -> np.ndarray:
     if isinstance(data, np.ndarray):
         return data
     else:
@@ -20,7 +23,7 @@ def ensure_tensor(data):
 
 class Tensor:
     def __init__(self,
-                 data: Union[np.ndarray, list, float],
+                 data: Arrayable,
                  requires_grad: bool = False,
                  grad_fn=None):
         self.data = ensure_ndarray(data)
@@ -51,7 +54,7 @@ class Tensor:
     def __sub__(self, other) -> 'Tensor':
         return autograd.functional.sub(self, ensure_tensor(other))
 
-    def __rsub__(self, other) -> 'Tensor':
+    def __rsub__(self, othere) -> 'Tensor':
         return autograd.functional.sub(ensure_tensor(other), self)
 
     def __isub__(self, other) -> 'Tensor':
@@ -67,10 +70,10 @@ class Tensor:
     def __matmul__(self, other) -> 'Tensor':
         return autograd.functional.matmul(self, other)
 
-    def sum(self) -> 'Tensor':
-        return autograd.functional.sum(self)
+    def sum(self,  axis: Union[int, Tuple[int]] = None) -> 'Tensor':
+        return autograd.functional.sum(self, axis)
 
-    def backward(self, grad: 'Tensor' = None):
+    def backward(self, grad: 'Tensor' = None) -> None:
         assert self.requires_grad
         if grad is None and self.shape != ():
             raise RuntimeError("grad can be implicitly created only for scalar outputs")
@@ -79,5 +82,10 @@ class Tensor:
         engine = Engine()
         engine.execute(self, grad)
 
-    def zero_grad(self):
+    def zero_grad(self) -> None:
         self.grad = None
+
+
+def rand(*shape, requires_grad=False) -> Tensor:
+    data = np.random.randn(*shape)
+    return Tensor(data=data, requires_grad=requires_grad)
