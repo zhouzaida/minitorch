@@ -4,7 +4,7 @@ from minitorch import Tensor
 
 
 class TestSub(TestCase):
-    
+
     def test_simple_sub(self):
         # scalar sub
         t1 = Tensor(1.0)

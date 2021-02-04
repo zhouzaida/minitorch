@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List, Union, Tuple
+from typing import Union, Tuple
 
 from minitorch import autograd
 
@@ -67,10 +67,19 @@ class Tensor:
     def __rmul__(self, other) -> 'Tensor':
         return autograd.functional.mul(ensure_tensor(other), self)
 
+    def __truediv__(self, other) -> 'Tensor':
+        return autograd.functional.div(self, ensure_tensor(other))
+
+    def __rtruediv__(self, other) -> 'Tensor':
+        return autograd.functional.div(ensure_tensor(other), self)
+
     def __matmul__(self, other) -> 'Tensor':
         return autograd.functional.matmul(self, other)
 
-    def sum(self,  axis: Union[int, Tuple[int]] = None) -> 'Tensor':
+    def __pow__(self, other: float) -> 'Tensor':
+        return autograd.functional.pow(self, other)
+
+    def sum(self, axis: Union[int, Tuple[int]] = None) -> 'Tensor':
         return autograd.functional.sum(self, axis)
 
     def t(self) -> 'Tensor':

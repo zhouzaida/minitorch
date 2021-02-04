@@ -4,7 +4,7 @@ from minitorch import Tensor
 
 
 class TestNeg(TestCase):
-    
+
     def test_neg(self):
         # scalar neg
         t1 = Tensor(1.0)

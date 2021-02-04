@@ -4,7 +4,7 @@ from minitorch import Tensor
 
 
 class TestMatmul(TestCase):
-    
+
     def test_matmul(self):
         t1 = Tensor([1.0, 2.0])
         t2 = Tensor([2.0, 3.0])

@@ -1,13 +1,13 @@
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-from typing import List, Tuple
+from typing import List
 
 from minitorch import Tensor
 from .edge import Edge
 
 
-def collect_next_edges(*tensors):
+def collect_next_edges(*tensors) -> List[Edge]:
     next_edges = []
     for t in tensors:
         if not t.requires_grad:
@@ -45,7 +45,7 @@ def unbroadcast(grad_input: Tensor, input_shape: tuple) -> Tensor:
     for i, dim in enumerate(input_shape):
         if dim == 1:
             data = data.sum(axis=i, keepdims=True)
-    
+
     return Tensor(data=data)
 
 
@@ -56,7 +56,7 @@ class Node(metaclass=ABCMeta):
 
     def set_next_edges(self, next_edges: List[Edge] = None):
         self.next_edges = next_edges
-    
+
     @abstractmethod
     def apply(self, *grad_outputs):
         """You must implement the abstract method for custome Node"""
@@ -81,8 +81,8 @@ class SumBackward(Node):
 
     def __init__(self):
         self.axis = None
-        self.shape = None
-    
+        self.shape: tuple = None
+
     def apply(self, grad_output: Tensor) -> tuple:
         if isinstance(self.axis, int):
             self.axis = [self.axis]
@@ -111,8 +111,8 @@ class TBackward(Node):
 class AddBackward(Node):
 
     def __init__(self):
-        self.t1_shape = None
-        self.t2_shape = None
+        self.t1_shape: tuple = None
+        self.t2_shape: tuple = None
 
     def apply(self, grad_output: Tensor) -> list:
         grad_input = []
@@ -126,8 +126,8 @@ class AddBackward(Node):
 class SubBackward(Node):
 
     def __init__(self):
-        self.t1_shape = None
-        self.t2_shape = None
+        self.t1_shape: tuple = None
+        self.t2_shape: tuple = None
 
     def apply(self, grad_output: Tensor) -> list:
         grad_input = []
@@ -141,10 +141,10 @@ class SubBackward(Node):
 class MulBackward(Node):
 
     def __init__(self):
-        self.t1 = None
-        self.t1_shape = None
-        self.t2 = None
-        self.t2_shape = None
+        self.t1: Tensor = None
+        self.t1_shape: tuple = None
+        self.t2: Tensor = None
+        self.t2_shape: tuple = None
 
     def apply(self, grad_output: Tensor) -> list:
         grad_input = []
@@ -155,11 +155,28 @@ class MulBackward(Node):
         return grad_input
 
 
+class DivBackward(Node):
+
+    def __init__(self):
+        self.t1: Tensor = None
+        self.t1_shape: tuple = None
+        self.t2: Tensor = None
+        self.t2_shape: tuple = None
+
+    def apply(self, grad_output: Tensor) -> list:
+        grad_input = []
+        if self.t2 is not None and self.t1_shape is not None:
+            grad_input.append(unbroadcast(1 / self.t2 * grad_output, self.t1_shape))
+        if self.t1 is not None:
+            grad_input.append(unbroadcast(-self.t1 / (self.t2 ** 2) * grad_output, self.t2_shape))
+        return grad_input
+
+
 class MatMulBackward(Node):
 
     def __init__(self):
-        self.t1 = None
-        self.t2 = None
+        self.t1: Tensor = None
+        self.t2: Tensor = None
 
     def apply(self, grad_output: Tensor) -> list:
         grad_input = []
@@ -168,3 +185,13 @@ class MatMulBackward(Node):
         if self.t1 is not None:
             grad_input.append(Tensor(self.t1.data.T) @ grad_output)
         return grad_input
+
+
+class PowBackward(Node):
+
+    def __init__(self):
+        self.t1: Tensor = None
+        self.t2: float = None
+
+    def apply(self, grad_output: Tensor) -> tuple:
+        return grad_output * self.t2 * self.t1 ** (self.t2-1),

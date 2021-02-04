@@ -103,6 +103,26 @@ def mul(t1: Tensor, t2: Tensor) -> Tensor:
         return Tensor(data=data)
 
 
+def div(t1: Tensor, t2: Tensor) -> Tensor:
+    data = t1.data / t2.data
+    requires_grad = t1.requires_grad or t2.requires_grad
+    if requires_grad:
+        div_bw = DivBackward()
+        div_bw.set_next_edges(collect_next_edges(t1, t2))
+        if t1.requires_grad:
+            div_bw.t2 = Tensor(data=t2.data)
+            div_bw.t1_shape = t1.shape
+        if t2.requires_grad:
+            div_bw.t1 = Tensor(data=t1.data)
+            div_bw.t2 = Tensor(data=t2.data) if div_bw.t2 is None else div_bw.t2
+            div_bw.t2_shape = t2.shape
+        return Tensor(data=data,
+                      requires_grad=True,
+                      grad_fn=div_bw)
+    else:
+        return Tensor(data=data)
+
+
 def matmul(t1: Tensor, t2: Tensor) -> Tensor:
     data = t1.data @ t2.data
     requires_grad = t1.requires_grad or t2.requires_grad
@@ -116,5 +136,20 @@ def matmul(t1: Tensor, t2: Tensor) -> Tensor:
         return Tensor(data=data,
                       requires_grad=True,
                       grad_fn=matmul_bw)
+    else:
+        return Tensor(data=data)
+
+
+def pow(t1: Tensor, t2: float) -> Tensor:
+    data = t1.data ** t2
+    requires_grad = t1.requires_grad
+    if requires_grad:
+        pow_bw = PowBackward()
+        pow_bw.set_next_edges(collect_next_edges(t1))
+        pow_bw.t1 = Tensor(data=t1.data)
+        pow_bw.t2 = t2
+        return Tensor(data=data,
+                      requires_grad=True,
+                      grad_fn=pow_bw)
     else:
         return Tensor(data=data)

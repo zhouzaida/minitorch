@@ -80,7 +80,6 @@ Implement a minimal neural network libary from scratch.
 
     ```python
     import minitorch
-    from minitorch import Tensor
     from minitorch.nn.modules.module import Module
     from minitorch.nn.modules.linear import Linear
 
@@ -111,6 +110,10 @@ Implement a minimal neural network libary from scratch.
 
 # References
 + [PyTorch](https://github.com/pytorch/pytorch)
-+ [mypy is a static type checker for Python](https://mypy.readthedocs.io/)
 + [autograd](https://github.com/joelgrus/autograd)
 + [tinygrad](https://github.com/geohot/tinygrad)
+
+# Tools
++ [mypy is a static type checker for Python](https://mypy.readthedocs.io/)
++ [Flake8: Your Tool For Style Guide Enforcement](https://flake8.pycqa.org/en/latest/)
++ [unittest](https://docs.python.org/3/library/unittest.html)

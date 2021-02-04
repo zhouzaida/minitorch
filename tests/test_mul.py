@@ -4,7 +4,7 @@ from minitorch import Tensor
 
 
 class TestMul(TestCase):
-    
+
     def test_simple_mul(self):
         # scalar mul
         t1 = Tensor(1.0)

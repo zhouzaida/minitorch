@@ -1,5 +1,4 @@
 import minitorch
-from minitorch import Tensor
 from minitorch.nn.modules.module import Module
 from minitorch.nn.modules.linear import Linear
 

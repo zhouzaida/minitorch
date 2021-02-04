@@ -4,7 +4,7 @@ from minitorch import Tensor
 
 
 class TestSum(TestCase):
-    
+
     def test_sum(self):
         t1 = Tensor([1., 2., 3.])
         t2 = t1.sum()

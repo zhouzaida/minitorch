@@ -13,13 +13,13 @@ class NodeTask:
     def __init__(self, node: Node, grad_input: Tensor):
         self.node = node
         self.grad_input = grad_input
-    
+
     def update_grad_input(self, grad_input: Tensor):
         self.grad_input += grad_input
 
 
 class Engine:
-    
+
     def execute(self, tensor, grad_input):
         dependencies = self._compute_dependencies(tensor.grad_fn)
         not_ready_dict = {}
