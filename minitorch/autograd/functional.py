@@ -21,6 +21,21 @@ def sum(t: Tensor, axis: Union[int, Tuple[int]] = None) -> Tensor:
     else:
         return Tensor(data=data)
 
+
+def mean(t: Tensor, axis: Union[int, Tuple[int]] = None) -> Tensor:
+    data = t.data.mean(axis=axis)
+    requires_grad = t.requires_grad
+    if requires_grad:
+        mean_bw = MeanBackward()
+        mean_bw.set_next_edges(collect_next_edges(t))
+        mean_bw.axis = axis
+        mean_bw.shape = t.shape
+        return Tensor(data=data,
+                      requires_grad=True,
+                      grad_fn=mean_bw)
+    else:
+        return Tensor(data=data)
+
 ############## unary operator ##################
 
 def neg(t: Tensor) -> Tensor:

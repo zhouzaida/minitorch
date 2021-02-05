@@ -24,17 +24,10 @@ def unbroadcast(grad_input: Tensor, input_shape: tuple) -> Tensor:
     """When broadcast is applied to an operation, unbroadcast should also
        be executed when backpropagating.
 
-    references:
-        + https://numpy.org/doc/stable/user/basics.broadcasting.html
-        + http://coldattic.info/post/116/
-        + https://github.com/joelgrus/autograd/blob/part06/autograd/tensor.py#L150
-
-    Args:
-        grad_input (Tensor): The gradient of input.
-        input_shape (tuple): The shape of input.
-
-    Returns:
-        Tensor: grad_input or new grad tensor.
+    References:
+        1. https://numpy.org/doc/stable/user/basics.broadcasting.html
+        2. http://coldattic.info/post/116/
+        3. https://github.com/joelgrus/autograd/blob/part06/autograd/tensor.py#L150
     """
     if grad_input.shape == input_shape:
         return grad_input
@@ -93,6 +86,25 @@ class SumBackward(Node):
         data = grad_output.data.reshape(shape) + np.zeros(self.shape)
         return Tensor(data=data),
 
+
+class MeanBackward(Node):
+
+    def __init__(self):
+        self.axis = None
+        self.shape: tuple = None
+
+    def apply(self, grad_output: Tensor) -> tuple:
+        if isinstance(self.axis, int):
+            self.axis = [self.axis]
+        if self.axis is None:
+            shape = [1] * len(self.shape)
+        else:
+            shape = [1 if i in self.axis else self.shape[i] for i in range(len(self.shape))]
+        scale = np.prod(grad_output.shape) / np.prod(self.shape)
+        data = scale * grad_output.data.reshape(shape) + np.zeros(self.shape)
+        return Tensor(data=data),
+
+
 ############## unary operator ##################
 
 class NegBackward(Node):
@@ -102,6 +114,7 @@ class NegBackward(Node):
 
 
 class TBackward(Node):
+    """Transpose"""
 
     def apply(self, grad_output: Tensor) -> list:
         return Tensor(data=grad_output.data.T)

@@ -1,6 +1,6 @@
 # minitorch
 
-Implement a minimal neural network libary from scratch.
+Implement a minimal library from scratch to help understand the Dynamic Computaional Graph of PyTorch.
 
 # TODO
 + support CUDA
@@ -80,22 +80,19 @@ Implement a minimal neural network libary from scratch.
 
     ```python
     import minitorch
-    from minitorch.nn.modules.module import Module
-    from minitorch.nn.modules.linear import Linear
-
+    import minitorch.nn as nn
 
     input = minitorch.rand(2, 3)
-    linear = Linear(3, 5, bias=True)
-    output = linear(input)
+    linear = nn.Linear(3, 5, bias=True)
+    output = nn.linear(input)
     print(f"output: {output}")
 
-
-    class Model(Module):
+    class Model(nn.Module):
 
         def __init__(self):
             super().__init__()
-            self.linear_1 = Linear(3, 5, bias=True)
-            self.linear_2 = Linear(5, 6)
+            self.linear_1 = nn.Linear(3, 5, bias=True)
+            self.linear_2 = nn.Linear(5, 6)
 
         def forward(self, input):
             output = self.linear_1(input)
@@ -106,14 +103,17 @@ Implement a minimal neural network libary from scratch.
     model = Model()
     output = model(input)
     print(f"output: {output}")
-    ```
 
-# References
-+ [PyTorch](https://github.com/pytorch/pytorch)
-+ [autograd](https://github.com/joelgrus/autograd)
-+ [tinygrad](https://github.com/geohot/tinygrad)
+    for name, module in model.named_modules(prefix='model'):
+        print(f"{name}: {module}")
+    ```
 
 # Tools
 + [mypy is a static type checker for Python](https://mypy.readthedocs.io/)
 + [Flake8: Your Tool For Style Guide Enforcement](https://flake8.pycqa.org/en/latest/)
 + [unittest](https://docs.python.org/3/library/unittest.html)
+
+# References
++ [PyTorch](https://github.com/pytorch/pytorch)
++ [autograd](https://github.com/joelgrus/autograd)
++ [tinygrad](https://github.com/geohot/tinygrad)

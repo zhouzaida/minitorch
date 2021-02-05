@@ -1,20 +1,19 @@
 import minitorch
-from minitorch.nn.modules.module import Module
-from minitorch.nn.modules.linear import Linear
+import minitorch.nn as nn
 
 
 input = minitorch.rand(2, 3)
-linear = Linear(3, 5, bias=True)
-output = linear(input)
+linear = nn.Linear(3, 5, bias=True)
+output = nn.linear(input)
 print(f"output: {output}")
 
 
-class Model(Module):
+class Model(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.linear_1 = Linear(3, 5, bias=True)
-        self.linear_2 = Linear(5, 6)
+        self.linear_1 = nn.Linear(3, 5, bias=True)
+        self.linear_2 = nn.Linear(5, 6)
 
     def forward(self, input):
         output = self.linear_1(input)

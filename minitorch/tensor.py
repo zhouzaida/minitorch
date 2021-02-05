@@ -82,7 +82,11 @@ class Tensor:
     def sum(self, axis: Union[int, Tuple[int]] = None) -> 'Tensor':
         return autograd.functional.sum(self, axis)
 
+    def mean(self, axis: Union[int, Tuple[int]] = None) -> 'Tensor':
+        return autograd.functional.mean(self, axis)
+
     def t(self) -> 'Tensor':
+        """transpose"""
         return autograd.functional.t(self)
 
     def backward(self, grad: 'Tensor' = None) -> None:
