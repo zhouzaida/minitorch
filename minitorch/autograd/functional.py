@@ -1,5 +1,7 @@
 from typing import Union, Tuple
 
+import numpy as np
+
 from minitorch import Tensor
 from .node import collect_next_edges
 from .node import *
@@ -61,6 +63,34 @@ def t(t: Tensor) -> Tensor:
         return Tensor(data=data,
                       requires_grad=True,
                       grad_fn=t_bw)
+    else:
+        return Tensor(data=data)
+
+
+def relu(t: Tensor) -> Tensor:
+    data = np.maximum(t.data, 0)
+    requires_grad = t.requires_grad
+    if requires_grad:
+        relu_bw = ReluBackward()
+        relu_bw.set_next_edges(collect_next_edges(t))
+        relu_bw.input = Tensor(data=t.data)
+        return Tensor(data=data,
+                      requires_grad=True,
+                      grad_fn=relu_bw)
+    else:
+        return Tensor(data=data)
+
+
+def exp(t: Tensor) -> Tensor:
+    data = np.exp(t.data)
+    requires_grad = t.requires_grad
+    if requires_grad:
+        exp_bw = ExpBackward()
+        exp_bw.set_next_edges(collect_next_edges(t))
+        exp_bw.output = Tensor(data=data)
+        return Tensor(data=data,
+                      requires_grad=True,
+                      grad_fn=exp_bw)
     else:
         return Tensor(data=data)
 

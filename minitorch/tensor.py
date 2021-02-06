@@ -89,6 +89,12 @@ class Tensor:
         """transpose"""
         return autograd.functional.t(self)
 
+    def exp(self) -> 'Tensor':
+        return autograd.functional.exp(self)
+
+    def relu(self) -> 'Tensor':
+        return autograd.functional.relu(self)
+
     def backward(self, grad: 'Tensor' = None) -> None:
         assert self.requires_grad
         if grad is None and self.shape != ():

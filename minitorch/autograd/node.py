@@ -53,6 +53,7 @@ class Node(metaclass=ABCMeta):
     @abstractmethod
     def apply(self, *grad_outputs):
         """You must implement the abstract method for custome Node"""
+        pass
 
 
 class AccumulateGrad(Node):
@@ -117,7 +118,25 @@ class TBackward(Node):
     """Transpose"""
 
     def apply(self, grad_output: Tensor) -> list:
-        return Tensor(data=grad_output.data.T)
+        return Tensor(data=grad_output.data.T),
+
+
+class ReluBackward(Node):
+
+    def __init__(self):
+        self.input: Tensor = None
+
+    def apply(self, grad_output: Tensor) -> list:
+        return grad_output * Tensor(data=(self.input.data >= 0)),
+
+
+class ExpBackward(Node):
+
+    def __init__(self):
+        self.output: Tensor = None
+
+    def apply(self, grad_output: Tensor) -> list:
+        return grad_output * self.output,
 
 ############## binary operator ##################
 

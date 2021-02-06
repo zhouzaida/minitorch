@@ -26,6 +26,7 @@ class Module(metaclass=ABCMeta):
     @abstractmethod
     def forward(self, *inputs):
         """subclass must implement the method."""
+        pass
 
     def __getattr__(self, name: str) -> Union[Tensor, 'Module']:
         _parameters = self.__dict__['_parameters']

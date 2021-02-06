@@ -21,3 +21,7 @@ class MSELoss(Module):
         else:
             raise ValueError("reduction should be one of the 'none,mean,sum', "
                              f"rather than {self.reduction}")
+
+
+class CrossEntropyLoss(Module):
+    pass
