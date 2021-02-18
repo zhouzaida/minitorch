@@ -4,7 +4,7 @@ import minitorch.nn as nn
 
 input = minitorch.rand(2, 3)
 linear = nn.Linear(3, 5, bias=True)
-output = nn.linear(input)
+output = linear(input)
 print(f"output: {output}")
 
 
@@ -24,6 +24,9 @@ input = minitorch.rand(2, 3)
 model = Model()
 output = model(input)
 print(f"output: {output}")
+
+for name, parameter in model.named_parameters():
+    print(f"{name}: {parameter}")
 
 for name, module in model.named_modules(prefix='model'):
     print(f"{name}: {module}")

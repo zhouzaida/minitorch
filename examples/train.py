@@ -9,10 +9,12 @@ class Model(nn.Module):
     def __init__(self, in_features=3):
         super().__init__()
         self.linear1 = nn.Linear(in_features, 5, bias=True)
+        self.relu1 = nn.Relu()
         self.linear2 = nn.Linear(5, 1, bias=True)
 
     def forward(self, input):
         output = self.linear1(input)
+        output = self.relu1(output)
         output = self.linear2(output)
         return output
 

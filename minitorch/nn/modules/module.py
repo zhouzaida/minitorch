@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-from typing import Iterator, Union
+from typing import Iterator, Union, Tuple
 
 from ..parameter import Parameter
 from minitorch import Tensor
@@ -46,18 +46,40 @@ class Module(metaclass=ABCMeta):
         else:
             object.__setattr__(self, name, value)
 
-    def parameters(self):
-        ...
+    def _named_members(self, get_members_fn, prefix='', recurse=True):
+        memo = set()
+        modules = self.named_modules(prefix=prefix) if recurse else [(prefix, self)]
+        for module_prefix, module in modules:
+            members = get_members_fn(module)
+            for k, v in members:
+                if v is None or v in memo:
+                    continue
+                memo.add(v)
+                name = module_prefix + ('.' if module_prefix else '') + k
+                yield name, v
 
-    def named_modules(self, prefix: str = '') -> Iterator['Module']:
+    def parameters(self, recurse: bool = True) -> Iterator[Parameter]:
+        for name, param in self.named_parameters(recurse=recurse):
+            yield param
+
+    def named_parameters(self, prefix: str = '', recurse: bool = True) -> Iterator[Tuple[str, Parameter]]:
+        gen = self._named_members(
+            lambda module: module._parameters.items(),
+            prefix=prefix, recurse=recurse)
+        for elem in gen:
+            yield elem
+
+    def modules(self) -> Iterator['Module']:
+        for name, module in self.named_modules():
+            yield module
+
+    def named_modules(self, prefix: str = '') -> Iterator[Tuple[str, 'Module']]:
         yield prefix, self
         for name, module in self._modules.items():
             submodule_prefix = prefix + ('.' if prefix else '') + name
-            for m in module.named_modules(submodule_prefix):
-                yield m
+            yield from module.named_modules(submodule_prefix)
 
     def zero_grad(self) -> None:
-        for value in self._modules.values():
-            value.zero_grad()
-        for value in self._parameters.values():
-            value.zero_grad()
+        for p in self.parameters():
+            if p.grad is not None:
+                p.grad = None
