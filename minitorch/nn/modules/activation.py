@@ -10,4 +10,4 @@ class Sigmoid(Module):
 
 class ReLU(Module):
     def forward(self, input: Tensor) -> Tensor:
-        return F.relu(self)
+        return F.relu(input)
