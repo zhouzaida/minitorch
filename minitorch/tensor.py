@@ -1,8 +1,7 @@
+from typing import Tuple, Union
+
 import numpy as np
-from typing import Union, Tuple
-
 from minitorch import autograd
-
 
 Arrayable = Union[float, list, np.ndarray]
 

@@ -3,6 +3,7 @@
 Implement a minimal library from scratch to help understand the Dynamic Computaional Graph of PyTorch.
 
 # TODO
++ add Dataset, Sampler, DataLoader
 + support CUDA
 
 # Requirements
@@ -111,6 +112,8 @@ Implement a minimal library from scratch to help understand the Dynamic Computai
 # Tools
 + [mypy is a static type checker for Python](https://mypy.readthedocs.io/)
 + [Flake8: Your Tool For Style Guide Enforcement](https://flake8.pycqa.org/en/latest/)
++ [isort](https://pycqa.github.io/isort/)
++ [pre-commit](https://pre-commit.com/)
 + [unittest](https://docs.python.org/3/library/unittest.html)
 
 # References
