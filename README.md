@@ -7,29 +7,29 @@ Implement a minimal library from scratch to help understand the Dynamic Computai
 
 # Requirements
 
-1. create virtual environment
+1. Create virtual environment
     ```bash
     python3 -m venv minitorch-env
     ```
 
-2. activate virtual environment
+2. Activate virtual environment
     ```bash 
     source minitorch-env/bin/activate
     ```
 
-3. intall dependencies
+3. Install dependencies
     ```bash
     pip install -r requirements.txt
     ```
 
 # Quick Start
 
-1. clone the codebase
+1. Clone the codebase
     ```bash
     git clone git@github.com:zhouzaida/minitorch.git
     ```
 
-2. install or develop
+2. Install or develop
     ```python
     python setup.py install
     # or
